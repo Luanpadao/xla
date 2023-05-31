@@ -19,7 +19,7 @@ using Emgu.CV.UI;
 using Emgu.CV.Structure;
 using Emgu.Util;
 using Emgu.CV.Reg;
-
+using ZBar;
 
 namespace comPLC
 {
@@ -32,7 +32,6 @@ namespace comPLC
         {
             InitializeComponent();
         }
-
         private void btn_check_Click(object sender, EventArgs e)
         {
             //Test connection PLC
@@ -46,7 +45,6 @@ namespace comPLC
             else
                 MessageBox.Show("Can't connect to PLC.", "Disconnected", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
-
         private void IPSHala_Load(object sender, EventArgs e)
         {
             tb_threshold.Text = trbar_threshold.Value.ToString();
@@ -112,7 +110,6 @@ namespace comPLC
             //Scan QR
             if (pictureBox1.Image != null)
                 {
-                var scanner = new ImageScanner();
                 BarcodeReader reader = new BarcodeReader();
                 Result result = reader.Decode((Bitmap)pictureBox1.Image);
                 if(result != null)
