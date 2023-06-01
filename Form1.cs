@@ -15,6 +15,7 @@ using AForge.Video;
 using AForge.Video.DirectShow;
 using ZXing;
 using ZXing.Aztec;
+using Emgu.CV;
 using Emgu.CV.UI;
 using Emgu.CV.Structure;
 using Emgu.Util;
@@ -124,7 +125,8 @@ namespace comPLC
             Bitmap RGBPic = new Bitmap(pictureBox1.Image);
             int Threshold = trbar_threshold.Value;
 
-            //Noise filter
+            //Noise filter - lọc nhiễu
+            Console.WriteLine("1");
             Bitmap BinaryPic = new Bitmap(RGBPic.Width, RGBPic.Height);
             for (int x = 0; x < RGBPic.Width; x++)
             {
@@ -139,15 +141,15 @@ namespace comPLC
                     else Gray = 0;
 
                     BinaryPic.SetPixel(x, y, Color.FromArgb(Gray, Gray, Gray));
-                    pictureBox4.Image = BinaryPic;
                 }
             }
-
+            Console.WriteLine("2");
+            pictureBox4.Image = BinaryPic;
             //Move data to textbox
             if (BinaryPic != null)
             {
                 BarcodeReader reader = new BarcodeReader();
-                Result result = reader.Decode((Bitmap)pictureBox4.Image);
+                Result result = reader.Decode((Bitmap)BinaryPic);
                 if (result != null)
                 {
                     tb_qr.Text = result.ToString();
@@ -213,7 +215,8 @@ namespace comPLC
                 plc.WriteBytes(DataType.Memory, 0, 0, bitSend); 
                 bitSend[0] &= 0xfe;
                 plc.WriteBytes(DataType.Memory, 0, 0, bitSend);
-                plc.Write(DataType.DataBlock, 73, 50, values.ToArray());
+                //plc.Write(DataType.DataBlock, 73, 50, values.ToArray());
+                plc.Write(DataType.DataBlock, 1, 80, values.ToArray());
                 plc.Close();
             }
             else
@@ -224,6 +227,7 @@ namespace comPLC
 
         private void tm_write_Tick(object sender, EventArgs e)
         {
+            Console.WriteLine("tm_write");
             Bitmap RGBPic = new Bitmap(pictureBox1.Image);
             int threshold = trbar_threshold.Value;
             /*
@@ -287,7 +291,8 @@ namespace comPLC
                         plc.WriteBytes(DataType.Memory, 0, 0, bitSend);
                         bitSend[0] &= 0xfe;
                         plc.WriteBytes(DataType.Memory, 0, 0, bitSend);
-                        plc.Write(DataType.DataBlock, 73, 50, values.ToArray());
+                        //plc.Write(DataType.DataBlock, 73, 50, values.ToArray());
+                        plc.Write(DataType.DataBlock, 1, 80, values.ToArray());
                         plc.Close();
                     }
                     else
@@ -309,7 +314,8 @@ namespace comPLC
             Plc plc = new Plc(CpuType.S71200, txt_ip.Text, 0, 0);
             if (plc.Open() == ErrorCode.NoError)
             {
-                var dataRead = plc.Read(DataType.DataBlock, 73, 52, VarType.String, 7);
+                //var dataRead = plc.Read(DataType.DataBlock, 73, 52, VarType.String, 7);
+                var dataRead = plc.Read(DataType.DataBlock, 1, 50, VarType.String, 7);
                 tb_readPLC.Text = dataRead.ToString();
                 plc.Close();
             }
@@ -374,12 +380,14 @@ namespace comPLC
 
         private void tm_delay_Tick(object sender, EventArgs e)
         {
+            Console.WriteLine("tm_delay");
             byte[] sensor = new byte[10];
 
             Plc plc = new Plc(CpuType.S71200, txt_ip.Text, 0, 0);
             if (plc.Open() == ErrorCode.NoError)
             {
-                sensor = plc.ReadBytes(DataType.DataBlock, 73, 32, 8);
+                sensor = plc.ReadBytes(DataType.DataBlock, 1, 16, 3);
+                //sensor = plc.ReadBytes(DataType.DataBlock, 73, 32, 8);
                 if (pictureBox1.Image != null && sensor[0].SelectBit(4) == true)
                 { 
                     radioButton1.Checked = true;
@@ -395,6 +403,11 @@ namespace comPLC
                 }
                 plc.Close();
             }
+        }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

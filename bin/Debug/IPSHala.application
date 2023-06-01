@@ -7,14 +7,14 @@
     <framework targetVersion="4.7.2" profile="Full" supportedRuntime="4.0.30319" />
   </compatibleFrameworks>
   <dependency>
-    <dependentAssembly dependencyType="install" codebase="IPSHala.exe.manifest" size="20759">
+    <dependentAssembly dependencyType="install" codebase="IPSHala.exe.manifest" size="21385">
       <assemblyIdentity name="IPSHala.exe" version="1.0.0.9" publicKeyToken="0000000000000000" language="neutral" processorArchitecture="msil" type="win32" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>uSjr9i53xIkx0URUg6hZwREBMrHPbvVeD+u5jyNmY4A=</dsig:DigestValue>
+        <dsig:DigestValue>xzBcJ1P1EOGjWqVlBVBBY+gTNLhocuT8k7dyzfZUTUw=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

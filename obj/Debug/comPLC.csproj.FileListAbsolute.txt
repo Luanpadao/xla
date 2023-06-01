@@ -99,3 +99,5 @@ C:\Users\thanh\Downloads\anh\comPLC\obj\Debug\IPSHala.application
 C:\Users\thanh\Downloads\anh\comPLC\obj\Debug\comPLC.csproj.CopyComplete
 C:\Users\thanh\Downloads\anh\comPLC\obj\Debug\IPSHala.exe
 C:\Users\thanh\Downloads\anh\comPLC\obj\Debug\IPSHala.pdb
+C:\Users\thanh\Downloads\anh\comPLC\bin\Debug\ZBar.dll
+C:\Users\thanh\Downloads\anh\comPLC\bin\Debug\ZBar.xml

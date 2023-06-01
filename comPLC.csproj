@@ -116,6 +116,9 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="ZBar">
+      <HintPath>packages\ZBar.1.0.2\lib\netcoreapp3.1\ZBar.dll</HintPath>
+    </Reference>
     <Reference Include="ZedGraph, Version=5.1.7.430, Culture=neutral, PublicKeyToken=02a83cbd123fcd60, processorArchitecture=MSIL">
       <HintPath>packages\ZedGraph.5.1.7\lib\net35-Client\ZedGraph.dll</HintPath>
     </Reference>
@@ -181,8 +184,6 @@
   <ItemGroup>
     <Content Include="hala_icon.ico" />
     <Content Include="License-LGPL.txt" />
-    <Content Include="zbar\libiconv.dll" />
-    <Content Include="zbar\libzbar-0.dll" />
     <None Include="Resources\Logo_IUH %281%29.png" />
     <None Include="Resources\logo_iuh.png" />
   </ItemGroup>
