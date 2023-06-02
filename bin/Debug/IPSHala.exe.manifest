@@ -115,14 +115,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="IPSHala.exe" size="181720">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="IPSHala.exe" size="184280">
       <assemblyIdentity name="IPSHala" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>TNu0dOc9VhCCjNeX6SSE4XjS4LKm6opx7squgYbxDBQ=</dsig:DigestValue>
+        <dsig:DigestValue>T53GPyLiiCcjDEd/LD83Pd6NMKFRs9J0Y/Kjp5UyPbo=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

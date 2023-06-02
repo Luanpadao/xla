@@ -20,7 +20,12 @@ using Emgu.CV.UI;
 using Emgu.CV.Structure;
 using Emgu.Util;
 using Emgu.CV.Reg;
+using Emgu.CV.Dai;
 using ZBar;
+using System.Drawing.Imaging;
+using static System.Net.Mime.MediaTypeNames;
+using Emgu.CV.CvEnum;
+using System.Threading;
 
 namespace comPLC
 {
@@ -28,7 +33,7 @@ namespace comPLC
     {
         private FilterInfoCollection CaptureDevice;
         private VideoCaptureDevice FinalFrame;
-
+        Bitmap frame;
         public IPSHala()
         {
             InitializeComponent();
@@ -48,6 +53,10 @@ namespace comPLC
         }
         private void IPSHala_Load(object sender, EventArgs e)
         {
+            // Sử dụng thư viện ZBar để phát hiện mã QR ---------------------------------
+            //ZBar.ImageScanner scanner = new ZBar.ImageScanner();
+            //scanner.SetConfiguration(ZBar.SymbolType.None, ZBar.Config.Enable, 0);
+            //scanner.SetConfiguration(ZBar.SymbolType.QRCODE, ZBar.Config.Enable, 1);
             tb_threshold.Text = trbar_threshold.Value.ToString();
             btn_scan.Enabled = false;
             btn_send.Enabled = false;
@@ -65,16 +74,19 @@ namespace comPLC
         private void btn_oncam_Click(object sender, EventArgs e)
         {
             btn_oncam.Enabled = false;
-
             //Turn on camera
             FinalFrame = new VideoCaptureDevice(CaptureDevice[cbb_devices.SelectedIndex].MonikerString);
             FinalFrame.NewFrame += new NewFrameEventHandler(FinalFrame_NewFrame);
-            if (FinalFrame.IsRunning != true) FinalFrame.Start();
+            if (FinalFrame.IsRunning != true)
+            {
+                FinalFrame.Start();
+            }
         }
 
         private void FinalFrame_NewFrame(Object sender,NewFrameEventArgs eventArgs)
         {
-            pictureBox1.Image = (Bitmap)eventArgs.Frame.Clone();
+            frame = (Bitmap)eventArgs.Frame.Clone();
+            pictureBox1.Image = frame;
         }
 
         private void IPSHala_FormClosed(object sender, FormClosedEventArgs e)
@@ -86,14 +98,14 @@ namespace comPLC
 
         private void tm_scan_Tick(object sender, EventArgs e) //timer scan QR
         {
-            Bitmap RGBPic = new Bitmap(pictureBox1.Image);
+            Bitmap RGBPic = new Bitmap(frame);
             int Threshold = trbar_threshold.Value;
 
             //Noise filter
-            Bitmap BinaryPic = new Bitmap(pictureBox1.Width, pictureBox1.Height);
-            for(int x = 0; x<pictureBox1.Width;x++)
+            Bitmap BinaryPic = new Bitmap(frame.Width, frame.Height);
+            for(int x = 0; x< frame.Width;x++)
             {
-                for (int y = 0; y < pictureBox1.Height; y++)
+                for (int y = 0; y < frame.Height; y++)
                 {
                     Color pixel = RGBPic.GetPixel(x, y);
                     byte R = pixel.R;
@@ -109,10 +121,10 @@ namespace comPLC
             }    
 
             //Scan QR
-            if (pictureBox1.Image != null)
+            if (frame != null)
                 {
                 BarcodeReader reader = new BarcodeReader();
-                Result result = reader.Decode((Bitmap)pictureBox1.Image);
+                Result result = reader.Decode((Bitmap)frame);
                 if(result != null)
                 {
                     tb_qr.Text = result.ToString();                   
@@ -122,7 +134,7 @@ namespace comPLC
 
         private void btn_scan_Click(object sender, EventArgs e)
         {
-            Bitmap RGBPic = new Bitmap(pictureBox1.Image);
+            Bitmap RGBPic = new Bitmap(frame);
             int Threshold = trbar_threshold.Value;
 
             //Noise filter - lọc nhiễu
@@ -169,7 +181,10 @@ namespace comPLC
 
             tm_scan.Stop();
             tm_write.Stop();
-            if (FinalFrame.IsRunning == true) FinalFrame.Stop();
+            if (FinalFrame.IsRunning == true)
+            {
+                FinalFrame.Stop();
+            }
         }
 
         private void btn_man_Click(object sender, EventArgs e)
@@ -228,7 +243,7 @@ namespace comPLC
         private void tm_write_Tick(object sender, EventArgs e)
         {
             Console.WriteLine("tm_write");
-            Bitmap RGBPic = new Bitmap(pictureBox1.Image);
+            Bitmap RGBPic = new Bitmap(frame);
             int threshold = trbar_threshold.Value;
             /*
             byte[] sensor = new byte[10];
@@ -333,7 +348,7 @@ namespace comPLC
 
         private void btn_gray_Click(object sender, EventArgs e)
         {
-            Bitmap RGBPic = new Bitmap(pictureBox1.Image);
+            Bitmap RGBPic = new Bitmap(frame);
             int Threshold = trbar_threshold.Value;
 
             //Noise filter
@@ -388,7 +403,7 @@ namespace comPLC
             {
                 sensor = plc.ReadBytes(DataType.DataBlock, 1, 16, 3);
                 //sensor = plc.ReadBytes(DataType.DataBlock, 73, 32, 8);
-                if (pictureBox1.Image != null && sensor[0].SelectBit(4) == true)
+                if (frame != null && sensor[0].SelectBit(4) == true)
                 { 
                     radioButton1.Checked = true;
                     tm_delay.Interval = 1000;
@@ -408,6 +423,121 @@ namespace comPLC
         private void pictureBox1_Click(object sender, EventArgs e)
         {
 
+        }
+        ///HÀM BỔ XUNG-----------------------------------------------------------------
+        private Bitmap CutOutQRCode(Bitmap frame)
+        {
+            // Chuyển đổi khung hình sang ảnh xám
+            Bitmap grayFrame = ConvertToGrayscale(frame);
+
+            // Tạo bộ lọc QR code
+            BarcodeReader barcodeReader = new BarcodeReader();
+            barcodeReader.Options.TryHarder = true;
+
+            // Nhận dạng mã QR code từ ảnh xám
+            ZXing.Result result = barcodeReader.Decode(grayFrame);
+
+            if (result != null)
+            {
+                // Lấy vùng chứa mã QR code
+                ZXing.ResultPoint[] resultPoints = result.ResultPoints;
+                Rectangle qrCodeRect = GetBoundingBox(resultPoints);
+
+                // Cắt phần ảnh chứa mã QR code
+                Bitmap qrCodeImage = frame.Clone(qrCodeRect, frame.PixelFormat);
+                return qrCodeImage;
+            }
+
+            return null;
+        }
+
+        private Bitmap ConvertToGrayscale(Bitmap image)
+        {
+            Bitmap grayscaleImage = new Bitmap(image.Width, image.Height, PixelFormat.Format8bppIndexed);
+
+            using (Graphics g = Graphics.FromImage(grayscaleImage))
+            {
+                ColorMatrix colorMatrix = new ColorMatrix(
+                    new float[][]
+                    {
+                new float[] { 0.299f, 0.299f, 0.299f, 0, 0 },
+                new float[] { 0.587f, 0.587f, 0.587f, 0, 0 },
+                new float[] { 0.114f, 0.114f, 0.114f, 0, 0 },
+                new float[] { 0, 0, 0, 1, 0 },
+                new float[] { 0, 0, 0, 0, 1 }
+                    });
+
+                ImageAttributes attributes = new ImageAttributes();
+                attributes.SetColorMatrix(colorMatrix);
+
+                g.DrawImage(image, new Rectangle(0, 0, image.Width, image.Height), 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, attributes);
+            }
+
+            return grayscaleImage;
+        }
+
+        private Rectangle GetBoundingBox(ZXing.ResultPoint[] resultPoints)
+        {
+            int minX = int.MaxValue;
+            int minY = int.MaxValue;
+            int maxX = int.MinValue;
+            int maxY = int.MinValue;
+
+            foreach (ZXing.ResultPoint point in resultPoints)
+            {
+                int x = (int)point.X;
+                int y = (int)point.Y;
+
+                if (x < minX)
+                    minX = x;
+                if (y < minY)
+                    minY = y;
+                if (x > maxX)
+                    maxX = x;
+                if (y > maxY)
+                    maxY = y;
+            }
+
+            return Rectangle.FromLTRB(minX, minY, maxX, maxY);
+        }
+
+        private void ProcessQRCode(Bitmap qrCodeImage)
+        {
+            if (qrCodeImage != null)
+            {
+                // Thực hiện xử lý mã QR code ở đây
+                // ...
+                // Ví dụ: Hiển thị mã QR code lên giao diện
+                frame = qrCodeImage;
+            }
+        }
+        // Giảm độ phân giải ảnh
+        private Bitmap ResizeImage(Bitmap hinhanh, int width, int height)
+        {
+            Bitmap resizedImage = new Bitmap(width, height);
+
+            bool isImageLocked = false;
+            try
+            {
+                Monitor.Enter(hinhanh, ref isImageLocked);
+                using (Bitmap clonedImage = (Bitmap)hinhanh.Clone())
+                {
+                    using (Graphics graphics = Graphics.FromImage(resizedImage))
+                    {
+                        graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                        graphics.DrawImage(clonedImage, 0, 0, width, height);
+                    }
+                }
+            }
+            finally
+            {
+                if (isImageLocked)
+                {
+                    Monitor.Exit(hinhanh);
+                }
+            }
+
+            return resizedImage;
         }
     }
 }
